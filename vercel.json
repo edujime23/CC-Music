@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "server/**/*.py": {
+      "runtime": "@vercel/python"
+    }
+  }
+}
