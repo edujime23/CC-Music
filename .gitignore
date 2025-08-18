@@ -205,3 +205,57 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# NuGet Packages
+*.nupkg
+packages/
+*.nuget.props
+*.nuget.targets
+
+# IDE/OS generated files
+Thumbs.db
+._*
+.DS_Store
+*.Cache
+*.bak
+
+# Test results
+[Tt]est[Rr]esult*/
+*.coverage
+*.coveragexml
+
+# IDE Tooling (ReSharper, Rider)
+*.ReSharper
+*_i.c
+*_i.h
+*_p.c
+*_i.id
+*_p.h
+*.resharper.user
+*.[Rr]e[Ss]harper
+.idea/
+
+# Publishing artifacts
+[Pp]ublish/
+*.publish.xml
+
+# Log files
+*.log
+
+# Secrets and environment files
+appsettings.Development.json
+secrets.json
+*.env
+*.pfx
+*.key
