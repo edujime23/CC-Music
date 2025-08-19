@@ -1,48 +1,119 @@
 # server/api/index.py
-
 import os
 import json
-from flask import Flask, jsonify
+from flask import Flask, Response, abort
+from pathlib import PurePosixPath
 
 app = Flask(__name__)
 
-# --- This is the new part ---
+# --- Data Loading and Tree Building ---
 
-# Define the path to the manifest file created by the build script.
-# __file__ is the path to the current script (index.py).
-# This makes sure we can always find the JSON file, as it's in the same 'api' directory.
-script_dir = os.path.dirname(os.path.abspath(__file__))
-MANIFEST_FILE = os.path.join(script_dir, 'music_files.json')
+MUSIC_TREE = {}
+MANIFEST_FILE = os.path.join(os.path.dirname(__file__), 'music_files.json')
 
-@app.route('/music', strict_slashes=False)
-def get_music_list():
-    """
-    Reads the pre-generated JSON manifest and returns the list of music files.
-    """
-    try:
-        # Check if the manifest file actually exists
-        if not os.path.exists(MANIFEST_FILE):
-            # If not, return a 404 Not Found error
-            return jsonify({"error": "Music manifest file not found. Please check the build logs."}), 404
+def build_music_tree():
+    """Reads the JSON manifest and builds a nested dictionary representing the file structure."""
+    if not os.path.exists(MANIFEST_FILE):
+        raise RuntimeError("Music manifest file not found. Run the build script.")
 
-        # Open the file, load the JSON data, and return it
-        with open(MANIFEST_FILE, 'r') as f:
-            data = json.load(f)
-        
-        # jsonify() correctly sets the Content-Type header to application/json
-        return jsonify(data)
+    with open(MANIFEST_FILE, 'r') as f:
+        data = json.load(f)
 
-    except Exception as e:
-        # Return a generic 500 error if anything else goes wrong
-        return jsonify({"error": "An internal server error occurred.", "details": str(e)}), 500
+    tree = {'_dirs': {}, '_files': {}}
+    for item in data['files']:
+        path = PurePosixPath(item['path'])
+        current_level = tree
+        # Iterate through path parts (e.g., 'music', 'a', 'b')
+        for part in path.parts[1:-1]: # Skip root '/' and the filename
+            if part not in current_level['_dirs']:
+                current_level['_dirs'][part] = {'_dirs': {}, '_files': {}}
+            current_level = current_level['_dirs'][part]
+        # Add the file to the final directory
+        current_level['_files'][path.name] = item['raw_url']
+    
+    return tree
 
-# --- Your existing routes ---
+# Build the tree once when the application starts
+try:
+    MUSIC_TREE = build_music_tree()
+except RuntimeError as e:
+    print(e)
 
-# Add strict_slashes=False to make the trailing slash optional
+
+# --- HTML Template ---
+
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Index of {path}</title>
+    <style>
+        body {{ font-family: monospace; padding: 20px; }}
+        ul {{ list-style-type: none; padding-left: 0; }}
+        li {{ padding: 5px 0; }}
+        a {{ text-decoration: none; color: #007bff; }}
+        a:hover {{ text-decoration: underline; }}
+    </style>
+</head>
+<body>
+    <h1>Index of {path}</h1>
+    <hr>
+    <ul>
+        <li><a href="{parent_path}">[../] Parent Directory</a></li>
+        {directories}
+        {files}
+    </ul>
+    <hr>
+</body>
+</html>
+"""
+
+# --- Routes ---
+
+@app.route('/music/', defaults={'subpath': ''}, strict_slashes=False)
+@app.route('/music/<path:subpath>', strict_slashes=False)
+def browse_music(subpath):
+    """Navigates the MUSIC_TREE and displays the contents of a directory."""
+    
+    current_level = MUSIC_TREE
+    path_parts = [p for p in subpath.split('/') if p]
+
+    # Navigate the tree based on the subpath
+    for part in path_parts:
+        if part in current_level['_dirs']:
+            current_level = current_level['_dirs'][part]
+        else:
+            abort(404, "Directory not found")
+
+    # Prepare parent directory link
+    current_path = f"/music/{subpath}"
+    parent_path = os.path.dirname(current_path.strip('/'))
+    if not parent_path:
+        parent_path = "/music"
+    else:
+        parent_path = f"/{parent_path}"
+
+
+    # Generate HTML for subdirectories
+    dir_html = ""
+    for dirname in sorted(current_level['_dirs'].keys()):
+        dir_html += f'<li><a href="{current_path.rstrip("/")}/{dirname}/">{dirname}/</a></li>'
+
+    # Generate HTML for files
+    file_html = ""
+    for filename, raw_url in sorted(current_level['_files'].items()):
+        file_html += f'<li><a href="{raw_url}" target="_blank">{filename}</a></li>'
+
+    # Render the final HTML
+    html_content = HTML_TEMPLATE.format(
+        path=current_path,
+        parent_path=parent_path,
+        directories=dir_html,
+        files=file_html
+    )
+    return Response(html_content, mimetype='text/html')
+
+
 @app.route('/', strict_slashes=False)
 def hello_world():
-    return 'Hello, World!'
-
-@app.route('/about', strict_slashes=False)
-def about_page():
-    return 'This is the About Page.'
+    return 'Hello, World! Try navigating to <a href="/music">/music</a>.'
