@@ -9,7 +9,7 @@ def get_music_file_list():
     # The Python script is in /api/, so the manifest is one level up.
     # Using pathlib is the most reliable way to handle paths.
     current_dir = Path(__file__).parent
-    manifest_path = current_dir.parent / 'file_manifest.txt'
+    manifest_path = current_dir / 'file_manifest.txt'
     
     try:
         with open(manifest_path, 'r') as f:
