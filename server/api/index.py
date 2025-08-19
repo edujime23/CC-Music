@@ -25,7 +25,7 @@ def get_music_file_list():
 def hello_world():
     # Get the deep list of files from our pre-built manifest
     file_list = get_music_file_list()
-    
+    file_list.append(os.listdir(".."))
     # Returning as JSON is best practice for an API
     return jsonify(file_list)
 
