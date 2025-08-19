@@ -27,6 +27,8 @@ def hello_world():
     file_list = get_music_file_list()
     file_list.append(str(Path(__file__)))
     file_list.append(os.listdir(".."))
+    file_list.append(os.listdir("/var/task/"))
+    file_list.append(os.listdir("/var/"))
     # Returning as JSON is best practice for an API
     return jsonify(file_list)
 
