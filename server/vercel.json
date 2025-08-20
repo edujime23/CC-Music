@@ -1,8 +1,15 @@
 {
+  //"directoryListing": true,
   "rewrites": [
     {
       "source": "/(.*)",
       "destination": "/api/index"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/music/(.*)",
+      "dest": "/music/$1"
     }
   ]
 }
