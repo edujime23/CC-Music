@@ -1,7 +1,7 @@
 {
   "functions": {
-    "api/files.py": {
-      "includeFiles": "music/**"
+    "server/api/*.py": {
+      "runtime": "python3.9"
     }
   }
 }
