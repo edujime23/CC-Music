@@ -12,7 +12,7 @@ app = Flask(__name__)
 def browse_music():
     path = request.args.get('path', os.getcwd())
     if path:
-        return os.listdir(path), os.getcwd()
+        return os.listdir(path), os.getcwd() 
     
 
 @app.route('/', strict_slashes=False)
