@@ -1,7 +1,2 @@
 {
-  "functions": {
-    "server/api/*.py": {
-      "runtime": "python3.9"
-    }
-  }
 }
