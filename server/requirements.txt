@@ -1,4 +1,4 @@
-flask
+aiohttp
 yt-dlp
 static-ffmpeg
 vercel-kv

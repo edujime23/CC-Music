@@ -1,12 +1,15 @@
 {
+  "directoryListing": true,
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/music/(.*)",
       "destination": "/music/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/api/index"
     }
-  ]
+  ],
+  "functions": {
+    "server/api/index.py": {
+      "includeFiles": "../music/**"
+    }
+  }
 }
