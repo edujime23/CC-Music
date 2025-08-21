@@ -1,2 +1,3 @@
 {
+  "buildCommand": "python server/scripts/generate_file_list.py"
 }
