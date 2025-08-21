@@ -1,3 +1,3 @@
 {
-  "buildCommand": "python server/scripts/build.py"
+  "buildCommand": "cd server && python scripts/build.py || python3 scripts/build.py"
 }
