@@ -5,14 +5,40 @@ from http.server import BaseHTTPRequestHandler
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         # Configuration - CHANGE THESE VALUES
-        GITHUB_OWNER = "edujime23"
-        GITHUB_REPO = "CC-Music"
+        GITHUB_OWNER = "YOUR_GITHUB_USERNAME"
+        GITHUB_REPO = "YOUR_REPO_NAME"
         GITHUB_BRANCH = "main"
         
         try:
-            # Load pre-generated file list
+            # Try multiple possible paths for the JSON file
             current_dir = os.path.dirname(os.path.abspath(__file__))
-            json_path = os.path.join(current_dir, '..', 'data', 'music-files.json')
+            
+            possible_paths = [
+                os.path.join(current_dir, '..', 'data', 'music-files.json'),
+                os.path.join(current_dir, 'music-files.json'),
+                os.path.join('/var/task', 'data', 'music-files.json'),
+                os.path.join('/var/task', 'server', 'data', 'music-files.json'),
+            ]
+            
+            json_path = None
+            for path in possible_paths:
+                if os.path.exists(path):
+                    json_path = path
+                    break
+            
+            if not json_path:
+                # Debug information
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "error": "music-files.json not found",
+                    "tried_paths": possible_paths,
+                    "current_dir": current_dir,
+                    "var_task_contents": os.listdir('/var/task') if os.path.exists('/var/task') else [],
+                    "current_dir_contents": os.listdir(current_dir)
+                }).encode())
+                return
             
             with open(json_path, 'r') as f:
                 files = json.load(f)
@@ -34,5 +60,6 @@ class handler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({
-                "error": str(e)
+                "error": str(e),
+                "type": type(e).__name__
             }).encode())

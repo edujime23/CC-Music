@@ -1,3 +1,9 @@
 {
-  "buildCommand": "cd server && python scripts/build.py || python3 scripts/build.py"
+  "buildCommand": "cd server && python scripts/build.py && cd ..",
+  "functions": {
+    "server/api/*.py": {
+      "maxDuration": 10,
+      "includeFiles": "server/data/**"
+    }
+  }
 }
