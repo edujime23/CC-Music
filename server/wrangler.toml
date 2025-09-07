@@ -1,0 +1,22 @@
+name = "cc-music"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+workers_dev = true
+
+# KV Namespaces will be added by setup script
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "bf6cdc74e39a454d8149867338924c05"
+
+[[kv_namespaces]]
+binding = "CHUNKS"
+id = "d614b86ae334407a98913c64e4bc6ba4"
+# binding = "SESSIONS"
+# id = "xxx"
+
+# [[kv_namespaces]]
+# binding = "CHUNKS"
+# id = "xxx"
+
+[env.production]
+name = "cc-music-prod"
