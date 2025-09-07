@@ -1,0 +1,72 @@
+-- test_session.lua
+print("== CC-Music HTTP Debug (fixed) ==")
+
+local SERVER_URL = "https://cc-music.psnedujime.workers.dev"
+
+-- 1) Basic GET to root (should be 200 JSON)
+do
+  local h, err = http.get(SERVER_URL)
+  if h then
+    print("GET / OK", h.getResponseCode())
+    print(h.readAll())
+    h.close()
+  else
+    print("GET / failed:", err)
+  end
+end
+
+-- 2) Proper POST to /session with empty body
+do
+  print("\nPOST /session with empty body")
+  local h, err, herr = http.post(SERVER_URL .. "/session", "", {["Content-Type"]="application/json"})
+  if h then
+    print("Status:", h.getResponseCode())
+    local body = h.readAll()
+    print("Body:", body)
+    h.close()
+  else
+    print("Failed:", err)
+    if herr then print("HTTP code:", herr.getResponseCode()) herr.close() end
+  end
+end
+
+-- 3) Alternative: JSON body
+do
+  print("\nPOST /session with {} body")
+  local h, err, herr = http.post(SERVER_URL .. "/session", "{}", {["Content-Type"]="application/json"})
+  if h then
+    print("Status:", h.getResponseCode())
+    print("Body:", h.readAll())
+    h.close()
+  else
+    print("Failed:", err)
+    if herr then print("HTTP code:", herr.getResponseCode()) herr.close() end
+  end
+end
+
+-- 4) Alternative: async table form
+do
+  print("\nhttp.request table form")
+  http.request{
+    url = SERVER_URL .. "/session",
+    method = "POST",
+    headers = {["Content-Type"]="application/json"},
+    body = ""
+  }
+  while true do
+    local ev, url, handle = os.pullEvent()
+    if ev == "http_success" then
+      print("http.request success:", url)
+      print("Status:", handle.getResponseCode())
+      print("Body:", handle.readAll())
+      handle.close()
+      break
+    elseif ev == "http_failure" then
+      print("http.request failure:", url)
+      if handle then print("Status:", handle.getResponseCode()) handle.close() end
+      break
+    end
+  end
+end
+
+print("\n== Done ==")
